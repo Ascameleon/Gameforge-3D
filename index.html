@@ -51,7 +51,7 @@ footer{max-width:1500px;margin:0 auto;padding:0 16px 18px;color:#71829e;font-siz
 <label class="wide" for="finish">Finition</label><select class="wide" id="finish"><option value="matte">Mat tactique</option><option value="metal">Métal</option><option value="bright">Peinture brillante</option></select>
 </div>
 <div class="actions"><button class="primary" id="generate">Générer le modèle</button><button id="reset">Réinitialiser</button><button id="export">Exporter GLB</button><button id="screenshot">Capture PNG</button></div>
-<div id="message" role="status" aria-live="polite">Prêt — choisis un modèle.</div>
+<div class="actions"><button id="saveProject">Sauvegarder projet</button><button id="loadProject">Charger projet</button><button id="downloadProject">Exporter projet JSON</button><button id="importProject">Importer projet JSON</button><input id="projectFile" type="file" accept="application/json,.json" hidden></div><div id="message" role="status" aria-live="polite">Prêt — choisis un modèle.</div>
 <span class="pill">Export GLB · Sans serveur</span>
 </section>
 <section class="panel stage"><div class="overlay"><strong id="modelName">CHAR LÉGER</strong><small>APERÇU 3D INTERACTIF</small></div><div id="viewport"></div><div class="hint">Glisser : rotation · Pincer : zoom · Deux doigts : déplacement</div></section>
@@ -137,5 +137,15 @@ for(const id of ['kind','color','detail','scale','finish'])document.querySelecto
 document.querySelector('#export').onclick=()=>{message.textContent='Préparation du fichier GLB…';new GLTFExporter().parse(asset,result=>{const blob=new Blob([result],{type:'model/gltf-binary'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='gameforge-'+document.querySelector('#kind').value+'.glb';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);message.textContent='Export GLB terminé.'},error=>{message.textContent='Échec export : '+error.message},{binary:true});};
 document.querySelector('#screenshot').onclick=()=>{renderer.render(scene,camera);const a=document.createElement('a');a.download='gameforge-preview.png';a.href=renderer.domElement.toDataURL('image/png');a.click();message.textContent='Capture PNG enregistrée.'};
 updateLabels();build();
+// Project persistence: local save plus portable JSON backup.
+const projectKey='gameforge3d.project.v1';
+function readProject(){return {version:1,kind:document.querySelector('#kind').value,color:document.querySelector('#color').value,detail:+document.querySelector('#detail').value,scale:+document.querySelector('#scale').value,finish:document.querySelector('#finish').value};}
+function applyProject(p){if(!p||p.version!==1||!['tank','heavy','tower','bunker','crate','tree','radar','truck','artillery','hangar','rock'].includes(p.kind)||!/^#[0-9a-f]{6}$/i.test(p.color)||![1,2,3,4].includes(+p.detail)||+p.scale<5||+p.scale>20||!['matte','metal','bright'].includes(p.finish))throw new Error('Fichier projet invalide ou incompatible.');document.querySelector('#kind').value=p.kind;document.querySelector('#color').value=p.color;document.querySelector('#detail').value=p.detail;document.querySelector('#scale').value=p.scale;document.querySelector('#finish').value=p.finish;updateLabels();build();}
+function downloadJSON(data,name){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);}
+document.querySelector('#saveProject').onclick=()=>{try{localStorage.setItem(projectKey,JSON.stringify(readProject()));message.textContent='Projet sauvegardé sur cet appareil.';}catch(e){message.textContent='Sauvegarde impossible : espace local indisponible.';}};
+document.querySelector('#loadProject').onclick=()=>{try{const raw=localStorage.getItem(projectKey);if(!raw)throw new Error('Aucune sauvegarde trouvée sur cet appareil.');applyProject(JSON.parse(raw));message.textContent='Projet chargé.';}catch(e){message.textContent=e.message;}};
+document.querySelector('#downloadProject').onclick=()=>downloadJSON(readProject(),'gameforge-project.json');
+document.querySelector('#importProject').onclick=()=>document.querySelector('#projectFile').click();
+document.querySelector('#projectFile').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;try{if(file.size>100000)throw new Error('Fichier trop volumineux.');applyProject(JSON.parse(await file.text()));message.textContent='Projet importé avec succès.';}catch(err){message.textContent='Import refusé : '+err.message;}finally{e.target.value='';}};
 </script>
 </body></html>
