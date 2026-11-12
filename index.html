@@ -121,7 +121,7 @@ function build(){
  }else if(kind==='hangar'){
   box(asset,m,0,1.25,0,4.8,2.5,5.2);const roof=mesh(asset,new THREE.ConeGeometry(3.7,1.4,4),dark,0,3.0,0);roof.rotation.y=Math.PI/4;box(asset,dark,0,1.15,2.62,3.1,2.15,.16);for(let x of [-1.8,1.8])box(asset,accent,x,1.3,2.72,.12,2.3,.12);
  }else if(kind==='rock'){
-  const geo=new THREE.IcosahedronGeometry(1.5,detail);const rock=mesh(asset,material('#737d86','matte'),0,.9,0,geo);rock.scale.set(1.25,.8,1);rock.rotation.set(.2,.4,.1);for(let i=0;i<detail*3;i++){const shard=mesh(asset,dark,new THREE.ConeGeometry(.35,.65,5),Math.sin(i*2.4)*1.05,.35+(i%3)*.35,Math.cos(i*2.4)*.9);shard.rotation.set(i*.3,i*.7,i*.2);}
+  const geo=new THREE.IcosahedronGeometry(1.5,detail);const rock=mesh(asset,geo,material('#737d86','matte'),0,.9,0);rock.scale.set(1.25,.8,1);rock.rotation.set(.2,.4,.1);for(let i=0;i<detail*3;i++){const shard=mesh(asset,new THREE.ConeGeometry(.35,.65,5),dark,Math.sin(i*2.4)*1.05,.35+(i%3)*.35,Math.cos(i*2.4)*.9);shard.rotation.set(i*.3,i*.7,i*.2);}
  }
  asset.scale.setScalar(scale);asset.position.y=0;
  document.querySelector('#modelName').textContent=document.querySelector('#kind').selectedOptions[0].text.toUpperCase();
