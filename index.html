@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<title>Gameforge 3D — Studio</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#121a2d;--line:#263550;--muted:#91a1bc;--text:#edf3ff;--accent:#58d7c2;--blue:#73a7ff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 55% -20%,#263e60 0,transparent 55%),var(--bg);color:var(--text);font:14px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+header{height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--line);background:#0b1020dd;position:sticky;top:0;z-index:4;backdrop-filter:blur(12px)}
+.brand{font-weight:800;letter-spacing:.4px}.brand span{color:var(--accent)}.status{font-size:11px;color:var(--muted)}
+main{max-width:1500px;margin:auto;padding:14px;display:grid;grid-template-columns:280px minmax(0,1fr);gap:14px}
+.panel{background:linear-gradient(160deg,#17233a,#10182a);border:1px solid var(--line);border-radius:16px;padding:15px;min-width:0}
+h1{font-size:18px;margin:0 0 5px}h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#b8c7df;margin:17px 0 9px}
+p{color:var(--muted);line-height:1.5;margin:4px 0 12px;font-size:12px}
+label{display:block;color:#bdcbe0;font-size:12px;margin:12px 0 6px}
+select,input[type=color]{width:100%;height:42px;border:1px solid #344765;border-radius:10px;background:#0c1425;color:var(--text);padding:0 10px}
+input[type=color]{padding:4px}
+button{border:1px solid #3a4d6d;background:#1a2942;color:var(--text);padding:11px 13px;border-radius:10px;font-weight:700;min-height:42px;cursor:pointer}
+button.primary{background:linear-gradient(120deg,#25a995,#2879a9);border:0;color:white}
+button:active{transform:translateY(1px)}button:disabled{opacity:.5}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.actions .primary{grid-column:1/-1}
+.stage{padding:0;overflow:hidden;position:relative;min-height:520px;background:radial-gradient(ellipse at center,#1a2b46,#090f1d 72%)}
+#viewport{position:absolute;inset:0;touch-action:none}
+.overlay{position:absolute;z-index:2;pointer-events:none;left:15px;top:14px}
+.overlay strong{display:block;font-size:14px}.overlay small{color:#a6b6d0}
+.hint{position:absolute;bottom:12px;left:12px;right:12px;text-align:center;color:#a9bad3;font-size:11px;pointer-events:none}
+.pill{display:inline-block;background:#142a39;color:#7fe6d2;padding:4px 8px;border-radius:99px;font-size:10px;margin-top:8px}
+.rangeRow{display:flex;align-items:center;justify-content:space-between;color:#bdcbe0;font-size:12px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+#message{min-height:30px;color:#8fe4d5;font-size:12px;padding-top:10px}
+footer{max-width:1500px;margin:0 auto;padding:0 16px 18px;color:#71829e;font-size:11px}
+@media(max-width:760px){main{grid-template-columns:1fr;padding:9px;gap:9px}.stage{min-height:54vh;order:-1}.panel{padding:13px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.controls h2{grid-column:1/-1}.controls .wide{grid-column:1/-1}.actions{grid-template-columns:1fr 1fr}.actions .primary{grid-column:1/-1}header{height:52px}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script>
+</head>
+<body>
+<header><div class="brand">GAMEFORGE <span>3D</span></div><div class="status">PROCEDURAL MODEL STUDIO · BETA</div></header>
+<main>
+<section class="panel">
+<h1>Model Builder</h1><p>Crée un premier asset 3D directement dans le navigateur. Aucun compte ni achat requis.</p>
+<div class="controls">
+<h2>Modèle</h2>
+<label for="kind">Type d'asset</label><select id="kind"><option value="tank">Char léger</option><option value="heavy">Char lourd</option><option value="tower">Tour défensive</option><option value="bunker">Bunker</option><option value="crate">Caisse industrielle</option><option value="tree">Conifère</option></select>
+<label for="color">Couleur principale</label><input id="color" type="color" value="#4b9b72">
+<label for="detail">Niveau de détail <output id="detailValue">2</output></label><input id="detail" type="range" min="1" max="4" value="2">
+<label for="scale">Échelle <output id="scaleValue">1.0×</output></label><input id="scale" type="range" min="5" max="20" value="10">
+<label class="wide" for="finish">Finition</label><select class="wide" id="finish"><option value="matte">Mat tactique</option><option value="metal">Métal</option><option value="bright">Peinture brillante</option></select>
+</div>
+<div class="actions"><button class="primary" id="generate">Générer le modèle</button><button id="reset">Réinitialiser</button><button id="export">Exporter GLB</button><button id="screenshot">Capture PNG</button></div>
+<div id="message" role="status" aria-live="polite">Prêt — choisis un modèle.</div>
+<span class="pill">Export GLB · Sans serveur</span>
+</section>
+<section class="panel stage"><div class="overlay"><strong id="modelName">CHAR LÉGER</strong><small>APERÇU 3D INTERACTIF</small></div><div id="viewport"></div><div class="hint">Glisser : rotation · Pincer : zoom · Deux doigts : déplacement</div></section>
+</main>
+<footer>Gameforge 3D · Prototype navigateur. WebGL et connexion au CDN Three.js nécessaires. Les assets générés sont des meshes procéduraux simples, pas encore des modèles sculptés ou riggés.</footer>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {GLTFExporter} from 'three/addons/exporters/GLTFExporter.js';
+const host=document.querySelector('#viewport'),message=document.querySelector('#message');
+const scene=new THREE.Scene();scene.background=new THREE.Color('#0b1425');
+const camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.set(8,7,10);
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.7));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;host.appendChild(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,1,0);controls.maxPolarAngle=Math.PI*.49;
+scene.add(new THREE.HemisphereLight(0xc8e2ff,0x253044,2));
+const key=new THREE.DirectionalLight(0xffe2bd,3.2);key.position.set(5,9,6);key.castShadow=true;scene.add(key);
+const fill=new THREE.DirectionalLight(0x5c9dff,1.4);fill.position.set(-6,4,-4);scene.add(fill);
+const floor=new THREE.Mesh(new THREE.CircleGeometry(9,64),new THREE.MeshStandardMaterial({color:'#111e31',roughness:.9}));floor.rotation.x=-Math.PI/2;floor.position.y=-.04;floor.receiveShadow=true;scene.add(floor);
+const grid=new THREE.GridHelper(18,36,'#3c607d','#20344c');grid.position.y=-.025;scene.add(grid);
+let asset=new THREE.Group();scene.add(asset);
+const mats={};
+function material(color,finish){const key=color+finish;if(mats[key])return mats[key];const m=new THREE.MeshStandardMaterial({color,roughness:finish==='metal'?.32:finish==='bright'?.22:.78,metalness:finish==='metal'?.78:.12});mats[key]=m;return m}
+function mesh(parent,geo,mat,x,y,z){const o=new THREE.Mesh(geo,mat);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
+function box(parent,mat,x,y,z,sx,sy,sz){return mesh(parent,new THREE.BoxGeometry(sx,sy,sz),mat,x,y,z)}
+function cylinder(parent,mat,x,y,z,r1,r2,h,n=12){return mesh(parent,new THREE.CylinderGeometry(r1,r2,h,n),mat,x,y,z)}
+function build(){
+ while(asset.children.length){const o=asset.children.pop();o.traverse?.(v=>{v.geometry?.dispose()});}
+ const color=document.querySelector('#color').value,finish=document.querySelector('#finish').value,detail=+document.querySelector('#detail').value,scale=+document.querySelector('#scale').value/10;
+ const m=material(color,finish),dark=material('#263344','metal'),accent=material('#d7a94b','metal'),glass=material('#83c7d9','bright');
+ const seg=detail*8;
+ const kind=document.querySelector('#kind').value;
+ if(kind==='tank'||kind==='heavy'){
+  const heavy=kind==='heavy',length=heavy?4.4:3.5,width=heavy?2.5:2.05;
+  box(asset,dark,0,.48,0,length,.62,width);
+  for(const side of [-1,1]){box(asset,material('#182432','metal'),0,.42,side*(width/2+.06),length*.92,.72,.22);
+   for(let i=0;i<7;i++){const wheel=cylinder(asset,dark,-length*.39+i*length*.13,.39,side*(width/2+.18),.28,.28,.16,seg);wheel.rotation.x=Math.PI/2;}
+  }
+  box(asset,m,-.1,1.02,0,heavy?2.5:2.0,.65,heavy?2.0:1.65);
+  cylinder(asset,m,.2,1.42,0,heavy?.82:.7,heavy?.82:.7,.25,seg);
+  const barrel=box(asset,dark,1.45,1.48,0,heavy?2.3:1.9,.16,.19);barrel.rotation.z=-.025;
+  box(asset,accent,-.35,1.78,0,.24,.05,.24);
+  if(heavy){box(asset,accent,-1.4,1.18,0,.16,.8,2.35);}
+ }else if(kind==='tower'){
+  cylinder(asset,dark,0,.18,0,1.2,1.35,.36,seg);cylinder(asset,m,0,1.1,0,.8,1.0,1.5,seg);
+  cylinder(asset,dark,0,2.0,0,.95,.7,.32,seg);
+  for(let i=0;i<3;i++){const b=box(asset,accent,.45,2.18,0,1.7,.12,.13);b.rotation.y=i*Math.PI/3;}
+ }else if(kind==='bunker'){
+  box(asset,m,0,.8,0,3.8,1.6,3);const roof=mesh(asset,new THREE.ConeGeometry(2.4,.8,4),dark,0,2,0);roof.rotation.y=Math.PI/4;
+  box(asset,dark,0,.65,1.53,1.1,.9,.12);for(let x of [-1.1,1.1])box(asset,glass,x,1.1,1.53,.55,.25,.08);
+ }else if(kind==='crate'){
+  box(asset,m,0,1,0,2.2,2,2.2);for(let y of [.15,.55,.95,1.35,1.85])box(asset,accent,0,y,1.12,2.25,.07,.07);
+  for(let x of [-1.12,1.12])box(asset,dark,x,1,0,.12,2.08,2.25);
+ }else if(kind==='tree'){
+  cylinder(asset,dark,0,.9,0,.22,.32,1.8,seg);
+  for(let i=0;i<detail+2;i++){const h=1.1+i*.65,r=1.35-i*.22;cylinder(asset,m,0,h,0,.04,r,1.5,seg);}
+ }
+ asset.scale.setScalar(scale);asset.position.y=0;
+ document.querySelector('#modelName').textContent=document.querySelector('#kind').selectedOptions[0].text.toUpperCase();
+ message.textContent='Modèle généré · '+asset.children.length+' éléments principaux.';
+}
+function resize(){const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)}
+new ResizeObserver(resize).observe(host);resize();
+function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)}animate();
+document.querySelector('#generate').onclick=build;
+document.querySelector('#reset').onclick=()=>{document.querySelector('#kind').value='tank';document.querySelector('#color').value='#4b9b72';document.querySelector('#detail').value=2;document.querySelector('#scale').value=10;document.querySelector('#finish').value='matte';updateLabels();build();camera.position.set(8,7,10);controls.target.set(0,1,0);controls.update()};
+function updateLabels(){document.querySelector('#detailValue').textContent=document.querySelector('#detail').value;document.querySelector('#scaleValue').textContent=(+document.querySelector('#scale').value/10).toFixed(1)+'×'}
+for(const id of ['kind','color','detail','scale','finish'])document.querySelector('#'+id).addEventListener('input',()=>{updateLabels();if(id==='kind'||id==='color'||id==='detail'||id==='scale'||id==='finish')build()});
+document.querySelector('#export').onclick=()=>{message.textContent='Préparation du fichier GLB…';new GLTFExporter().parse(asset,result=>{const blob=new Blob([result],{type:'model/gltf-binary'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='gameforge-'+document.querySelector('#kind').value+'.glb';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);message.textContent='Export GLB terminé.'},error=>{message.textContent='Échec export : '+error.message},{binary:true});};
+document.querySelector('#screenshot').onclick=()=>{renderer.render(scene,camera);const a=document.createElement('a');a.download='gameforge-preview.png';a.href=renderer.domElement.toDataURL('image/png');a.click();message.textContent='Capture PNG enregistrée.'};
+updateLabels();build();
+</script>
+</body></html>
