@@ -15,6 +15,9 @@ required = [
     "const isMobileProfile=matchMedia", "antialias:!isMobileProfile",
     "isMobileProfile?1.15:1.7", "renderer.shadowMap.enabled=!isMobileProfile",
     "renderer.domElement.dataset.performanceProfile=isMobileProfile?'mobile':'desktop'",
+    "renderer.domElement.dataset.pixelRatio=String(renderer.getPixelRatio())",
+    "renderer.domElement.dataset.shadowMapEnabled=String(renderer.shadowMap.enabled)",
+    "renderer.domElement.dataset.antialiasEnabled=String(!isMobileProfile)",
 ]
 missing = [token for token in required if token not in html]
 if missing:
