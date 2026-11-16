@@ -17,3 +17,20 @@ jobs:
           python-version: '3.12'
       - name: Validate generator structure
         run: python scripts/validate_gameforge.py
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright and Chromium
+        run: |
+          npm init -y
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Run desktop and mobile WebGL smoke tests
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/gameforge-http.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then break; fi
+            sleep 1
+          done
+          node scripts/smoke_gameforge_browser.mjs

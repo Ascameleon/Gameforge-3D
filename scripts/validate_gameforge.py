@@ -12,6 +12,12 @@ required = [
     "downloadProject", "importProject", "gameforge3d.project.v1",
     "function applyProject(p)", "Number.isInteger(+p.scale)", "JSON.stringify(data,null,2)",
     "function disposeAsset()", "disposeAsset();", "mats[key].dispose()", "delete mats[key]",
+    "const isMobileProfile=matchMedia", "antialias:!isMobileProfile",
+    "isMobileProfile?1.15:1.7", "renderer.shadowMap.enabled=!isMobileProfile",
+    "renderer.domElement.dataset.performanceProfile=isMobileProfile?'mobile':'desktop'",
+    "renderer.domElement.dataset.pixelRatio=String(renderer.getPixelRatio())",
+    "renderer.domElement.dataset.shadowMapEnabled=String(renderer.shadowMap.enabled)",
+    "renderer.domElement.dataset.antialiasEnabled=String(!isMobileProfile)",
 ]
 missing = [token for token in required if token not in html]
 if missing:
@@ -19,6 +25,11 @@ if missing:
 
 if "touch-action:none" not in html:
     raise SystemExit("Missing touch interaction configuration")
+
+if "renderer.shadowMap.enabled=!isMobileProfile" not in html:
+    raise SystemExit("Mobile profile must disable shadow-map rendering")
+if "isMobileProfile?1.15:1.7" not in html:
+    raise SystemExit("Mobile and desktop device-pixel-ratio budgets must remain explicit")
 
 cleanup_start = html.index("function disposeAsset()")
 cleanup_end = html.index("function build()", cleanup_start)
@@ -53,4 +64,4 @@ missing_docs = [label for label in documented_labels if label not in readme]
 if missing_docs:
     raise SystemExit("README asset catalog is incomplete: " + ", ".join(missing_docs))
 
-print("PASS: Gameforge structure, project persistence, exports and all 11 documented asset types")
+print("PASS: Gameforge structure, mobile GPU budget, project persistence, exports and all 11 documented asset types")

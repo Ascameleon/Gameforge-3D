@@ -64,8 +64,10 @@ import {GLTFExporter} from 'three/addons/exporters/GLTFExporter.js';
 const host=document.querySelector('#viewport'),message=document.querySelector('#message');
 const scene=new THREE.Scene();scene.background=new THREE.Color('#0b1425');
 const camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.set(8,7,10);
-const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.7));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;host.appendChild(renderer.domElement);
+// Mobile devices use a lower GPU budget to reduce fill-rate, memory and battery use.
+const isMobileProfile=matchMedia('(max-width:760px)').matches||(navigator.maxTouchPoints>0&&innerWidth<=1024);
+const renderer=new THREE.WebGLRenderer({antialias:!isMobileProfile,preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,isMobileProfile?1.15:1.7));renderer.shadowMap.enabled=!isMobileProfile;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;renderer.domElement.dataset.performanceProfile=isMobileProfile?'mobile':'desktop';renderer.domElement.dataset.pixelRatio=String(renderer.getPixelRatio());renderer.domElement.dataset.shadowMapEnabled=String(renderer.shadowMap.enabled);renderer.domElement.dataset.antialiasEnabled=String(!isMobileProfile);host.appendChild(renderer.domElement);
 const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,1,0);controls.maxPolarAngle=Math.PI*.49;
 scene.add(new THREE.HemisphereLight(0xc8e2ff,0x253044,2));
 const key=new THREE.DirectionalLight(0xffe2bd,3.2);key.position.set(5,9,6);key.castShadow=true;scene.add(key);
