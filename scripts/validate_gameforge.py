@@ -11,6 +11,7 @@ required = [
     "toDataURL", "ResizeObserver", "saveProject", "loadProject",
     "downloadProject", "importProject", "gameforge3d.project.v1",
     "function applyProject(p)", "Number.isInteger(+p.scale)", "JSON.stringify(data,null,2)",
+    "function disposeAsset()", "disposeAsset();", "mats[key].dispose()", "delete mats[key]",
 ]
 missing = [token for token in required if token not in html]
 if missing:
@@ -18,6 +19,14 @@ if missing:
 
 if "touch-action:none" not in html:
     raise SystemExit("Missing touch interaction configuration")
+
+cleanup_start = html.index("function disposeAsset()")
+cleanup_end = html.index("function build()", cleanup_start)
+cleanup_section = html[cleanup_start:cleanup_end]
+if "asset.remove(o)" not in cleanup_section or "v.geometry?.dispose()" not in cleanup_section:
+    raise SystemExit("Asset rebuild must detach and dispose old geometry")
+if "mats[key].dispose()" not in cleanup_section or "delete mats[key]" not in cleanup_section:
+    raise SystemExit("Asset rebuild must dispose and clear cached materials")
 
 kind_select = re.search(r'<select id="kind">(.*?)</select>', html, re.DOTALL)
 if not kind_select:
