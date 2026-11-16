@@ -11,14 +11,14 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Validate generator structure and offline dependency contract
         run: python scripts/validate_gameforge.py
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
       - name: Prepare offline runtime site
@@ -46,7 +46,7 @@ jobs:
           done
           node scripts/smoke_gameforge_browser.mjs
       - name: Upload prepared offline site
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gameforge3d-offline-site
           path: site/
