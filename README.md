@@ -9,6 +9,7 @@ Open `index.html` through GitHub Pages or any static HTTP server. WebGL and acce
 - Eleven procedural starter assets: light/heavy tank, defense tower, bunker, industrial crate, conifer, mobile radar, logistics truck, self-propelled artillery, hangar and rock.
 - Adjustable color, detail level, scale and material finish.
 - Orbit, zoom and pan preview using mouse or touch.
+- Adaptive mobile renderer: antialiasing and shadow maps disabled on narrow/touch devices, with device-pixel-ratio capped at 1.15 (desktop cap 1.7).
 - Export the current model as binary glTF (`.glb`) and save a PNG preview.
 - Save projects locally, export/import portable JSON project files.
 - No account, backend, paid API or purchase required.
