@@ -22,13 +22,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
-      - uses: actions/configure-pages@v5
-        with:
-          enablement: true
+      - uses: actions/configure-pages@v6
       - name: Prepare offline site
         run: bash scripts/prepare_pages_site.sh site
       - name: Verify local Three.js runtime
@@ -39,14 +37,14 @@ jobs:
           test -s site/vendor/three/examples/jsm/utils/TextureUtils.js
           test -s site/vendor/three/LICENSE
           node --input-type=module -e "import * as THREE from './site/vendor/three/build/three.module.js'; if (THREE.REVISION !== '160') throw new Error('Unexpected Three.js revision ' + THREE.REVISION); console.log('Three.js revision', THREE.REVISION)"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: gameforge3d-offline-site
           path: site/
           retention-days: 14
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site
       - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
