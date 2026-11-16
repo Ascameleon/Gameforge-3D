@@ -15,22 +15,39 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Validate generator structure
+      - name: Validate generator structure and offline dependency contract
         run: python scripts/validate_gameforge.py
 
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Prepare offline runtime site
+        run: bash scripts/prepare_pages_site.sh site
+      - name: Verify vendored runtime
+        run: |
+          test -s site/vendor/three/build/three.module.js
+          test -s site/vendor/three/examples/jsm/controls/OrbitControls.js
+          test -s site/vendor/three/examples/jsm/exporters/GLTFExporter.js
+          test -s site/vendor/three/examples/jsm/utils/TextureUtils.js
+          test -s site/vendor/three/LICENSE
+          node --input-type=module -e "import * as THREE from './site/vendor/three/build/three.module.js'; if (THREE.REVISION !== '160') throw new Error('Unexpected Three.js revision ' + THREE.REVISION); console.log('Three.js revision', THREE.REVISION)"
+
       - name: Install Playwright and Chromium
         run: |
           npm init -y
-          npm install --no-save playwright
+          npm install --no-save --no-package-lock playwright
           npx playwright install --with-deps chromium
-      - name: Run desktop and mobile WebGL smoke tests
+      - name: Run desktop and mobile WebGL smoke tests without external network
         run: |
-          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/gameforge-http.log 2>&1 &
+          python3 -m http.server 4173 --directory site --bind 127.0.0.1 > /tmp/gameforge-http.log 2>&1 &
           for attempt in $(seq 1 30); do
             if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then break; fi
             sleep 1
           done
           node scripts/smoke_gameforge_browser.mjs
+      - name: Upload prepared offline site
+        uses: actions/upload-artifact@v4
+        with:
+          name: gameforge3d-offline-site
+          path: site/
+          retention-days: 14

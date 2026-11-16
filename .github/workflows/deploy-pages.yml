@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - 'index.html'
+      - 'README.md'
+      - 'scripts/prepare_pages_site.sh'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 permissions:
@@ -21,13 +23,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - uses: actions/configure-pages@v5
         with:
           enablement: true
-      - name: Prepare site
+      - name: Prepare offline site
+        run: bash scripts/prepare_pages_site.sh site
+      - name: Verify local Three.js runtime
         run: |
-          mkdir -p site
-          cp index.html site/index.html
+          test -s site/vendor/three/build/three.module.js
+          test -s site/vendor/three/examples/jsm/controls/OrbitControls.js
+          test -s site/vendor/three/examples/jsm/exporters/GLTFExporter.js
+          test -s site/vendor/three/examples/jsm/utils/TextureUtils.js
+          test -s site/vendor/three/LICENSE
+          node --input-type=module -e "import * as THREE from './site/vendor/three/build/three.module.js'; if (THREE.REVISION !== '160') throw new Error('Unexpected Three.js revision ' + THREE.REVISION); console.log('Three.js revision', THREE.REVISION)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gameforge3d-offline-site
+          path: site/
+          retention-days: 14
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
