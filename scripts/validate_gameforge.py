@@ -10,7 +10,7 @@ required = [
     "new THREE.Scene", "function build()", "model/gltf-binary",
     "toDataURL", "ResizeObserver", "saveProject", "loadProject",
     "downloadProject", "importProject", "gameforge3d.project.v1",
-    "function applyProject(p)", "JSON.stringify(data,null,2)",
+    "function applyProject(p)", "Number.isInteger(+p.scale)", "JSON.stringify(data,null,2)",
 ]
 missing = [token for token in required if token not in html]
 if missing:
