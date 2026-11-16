@@ -18,6 +18,15 @@ try {
     });
     const pageErrors = [];
     page.on("pageerror", error => pageErrors.push(error.message));
+    await page.route("**/*", async route => {
+      const requestUrl = new URL(route.request().url());
+      if (requestUrl.origin !== "http://127.0.0.1:4173") {
+        failures.push(profile.name + ": unexpected external request " + requestUrl.href);
+        await route.abort();
+        return;
+      }
+      await route.continue();
+    });
     await page.goto("http://127.0.0.1:4173", { waitUntil: "networkidle", timeout: 60000 });
     await page.waitForFunction(() => {
       const canvas = document.querySelector("#viewport canvas");

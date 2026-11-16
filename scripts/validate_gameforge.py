@@ -4,6 +4,7 @@ import re
 root = Path(__file__).resolve().parents[1]
 html = (root / "index.html").read_text(encoding="utf-8")
 readme = (root / "README.md").read_text(encoding="utf-8")
+prepare_script = (root / "scripts/prepare_pages_site.sh").read_text(encoding="utf-8")
 
 required = [
     "OrbitControls", "GLTFExporter", "new THREE.WebGLRenderer",
@@ -18,10 +19,20 @@ required = [
     "renderer.domElement.dataset.pixelRatio=String(renderer.getPixelRatio())",
     "renderer.domElement.dataset.shadowMapEnabled=String(renderer.shadowMap.enabled)",
     "renderer.domElement.dataset.antialiasEnabled=String(!isMobileProfile)",
+    '"three":"./vendor/three/build/three.module.js"',
+    '"three/addons/":"./vendor/three/examples/jsm/"',
 ]
 missing = [token for token in required if token not in html]
 if missing:
     raise SystemExit("Missing features: " + ", ".join(missing))
+
+if "https://cdn.jsdelivr.net/npm/three@" in html:
+    raise SystemExit("Runtime must not depend on the Three.js CDN")
+
+prepare_required = ['VERSION="0.160.1"', 'npm pack "three@$VERSION"', "examples/jsm/controls/OrbitControls.js", "examples/jsm/exporters/GLTFExporter.js", "examples/jsm/utils/TextureUtils.js", "LICENSE"]
+missing_prepare = [token for token in prepare_required if token not in prepare_script]
+if missing_prepare:
+    raise SystemExit("Offline runtime preparation is incomplete: " + ", ".join(missing_prepare))
 
 if "touch-action:none" not in html:
     raise SystemExit("Missing touch interaction configuration")
