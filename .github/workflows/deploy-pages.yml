@@ -27,8 +27,6 @@ jobs:
         with:
           node-version: '22'
       - uses: actions/configure-pages@v6
-        with:
-          enablement: true
       - name: Prepare offline site
         run: bash scripts/prepare_pages_site.sh site
       - name: Verify local Three.js runtime
