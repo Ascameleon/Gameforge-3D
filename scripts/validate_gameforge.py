@@ -29,7 +29,7 @@ if missing:
 if "https://cdn.jsdelivr.net/npm/three@" in html:
     raise SystemExit("Runtime must not depend on the Three.js CDN")
 
-prepare_required = ["three@0.160.1", "examples/jsm/controls/OrbitControls.js", "examples/jsm/exporters/GLTFExporter.js", "examples/jsm/utils/TextureUtils.js", "LICENSE"]
+prepare_required = ['VERSION="0.160.1"', 'npm pack "three@$VERSION"', "examples/jsm/controls/OrbitControls.js", "examples/jsm/exporters/GLTFExporter.js", "examples/jsm/utils/TextureUtils.js", "LICENSE"]
 missing_prepare = [token for token in prepare_required if token not in prepare_script]
 if missing_prepare:
     raise SystemExit("Offline runtime preparation is incomplete: " + ", ".join(missing_prepare))
