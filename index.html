@@ -78,8 +78,19 @@ function material(color,finish){const key=color+finish;if(mats[key])return mats[
 function mesh(parent,geo,mat,x,y,z){const o=new THREE.Mesh(geo,mat);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
 function box(parent,mat,x,y,z,sx,sy,sz){return mesh(parent,new THREE.BoxGeometry(sx,sy,sz),mat,x,y,z)}
 function cylinder(parent,mat,x,y,z,r1,r2,h,n=12){return mesh(parent,new THREE.CylinderGeometry(r1,r2,h,n),mat,x,y,z)}
+function disposeAsset(){
+ while(asset.children.length){
+  const o=asset.children[0];
+  asset.remove(o);
+  o.traverse?.(v=>{v.geometry?.dispose()});
+ }
+ for(const key of Object.keys(mats)){
+  mats[key].dispose();
+  delete mats[key];
+ }
+}
 function build(){
- while(asset.children.length){const o=asset.children.pop();o.traverse?.(v=>{v.geometry?.dispose()});}
+ disposeAsset();
  const color=document.querySelector('#color').value,finish=document.querySelector('#finish').value,detail=+document.querySelector('#detail').value,scale=+document.querySelector('#scale').value/10;
  const m=material(color,finish),dark=material('#263344','metal'),accent=material('#d7a94b','metal'),glass=material('#83c7d9','bright');
  const seg=detail*8;
